@@ -32,8 +32,8 @@ namespace DevSocial.IdentityServer.Settings
                         "customAPI.write"
                     },
                     //change to http://docs.identityserver.io/en/latest/topics/clients.html?highlight=AllowedGrantTypes
-                    RedirectUris = new List<string> {"https://localhost:44330/signin-oidc"},
-                    PostLogoutRedirectUris = new List<string> {"https://localhost:44330"},
+                    RedirectUris = new List<string> {"https://localhost:5000/signin-oidc"},
+                    PostLogoutRedirectUris = new List<string> {"https://localhost:5000"},
                     RequireConsent = false
                 }
             };

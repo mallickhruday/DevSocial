@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.106
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevSocial.IdentityServer", "DevSocial.IdentityServer\DevSocial.IdentityServer.csproj", "{0736C921-8AD8-4947-A8CC-06317917459B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevSocial.IdentityServer", "DevSocial.IdentityServer\DevSocial.IdentityServer.csproj", "{0736C921-8AD8-4947-A8CC-06317917459B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevSocial.API", "DevSocial.API\DevSocial.API.csproj", "{9191DF74-58F5-471F-9F72-516065863869}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DevSocial.API", "DevSocial.API\DevSocial.API.csproj", "{9191DF74-58F5-471F-9F72-516065863869}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JavaScriptClient", "JavaScriptClient\JavaScriptClient.csproj", "{A21E6375-E547-4FFF-A3FC-CDF0395CE310}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{9191DF74-58F5-471F-9F72-516065863869}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9191DF74-58F5-471F-9F72-516065863869}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9191DF74-58F5-471F-9F72-516065863869}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A21E6375-E547-4FFF-A3FC-CDF0395CE310}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A21E6375-E547-4FFF-A3FC-CDF0395CE310}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A21E6375-E547-4FFF-A3FC-CDF0395CE310}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A21E6375-E547-4FFF-A3FC-CDF0395CE310}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
