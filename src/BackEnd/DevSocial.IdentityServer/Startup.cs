@@ -53,7 +53,7 @@ namespace DevSocial.IdentityServer
             }
 
             InitializeDbTestData(app);
-            app.UseCors("default");
+
             app.UseIdentityServer();
 
             app.UseStaticFiles();
