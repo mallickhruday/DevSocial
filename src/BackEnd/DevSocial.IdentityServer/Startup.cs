@@ -22,13 +22,25 @@ namespace DevSocial.IdentityServer
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            const string connectionString = @"Data Source=IdentityServer.db;";
+            //const string connectionString = @"Data Source=IdentityServer.db;";
+            const string connectionString = @"Data Source=.;database=DevSocial;trusted_connection=yes;";
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
+
+            services.AddCors(options =>
+            {
+                // this defines a CORS policy called "default"
+                options.AddPolicy("default", policy =>
+                {
+                    policy.WithOrigins("http://localhost:5003")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             services.AddDbContext<ApplicationDbContext>(builder =>
-                builder.UseSqlite(connectionString, sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)));
+                builder.UseSqlServer(connectionString, sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)));
 
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -36,10 +48,10 @@ namespace DevSocial.IdentityServer
             services.AddIdentityServer()
                 .AddOperationalStore(options =>
                     options.ConfigureDbContext = builder =>
-                        builder.UseSqlite(connectionString, sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
+                        builder.UseSqlServer(connectionString, sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
                 .AddConfigurationStore(options =>
                     options.ConfigureDbContext = builder =>
-                        builder.UseSqlite(connectionString, sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
+                        builder.UseSqlServer(connectionString, sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
                 .AddAspNetIdentity<IdentityUser>()
                 .AddDeveloperSigningCredential();
         }
@@ -53,7 +65,7 @@ namespace DevSocial.IdentityServer
             }
 
             InitializeDbTestData(app);
-
+            app.UseCors("default");
             app.UseIdentityServer();
 
             app.UseStaticFiles();

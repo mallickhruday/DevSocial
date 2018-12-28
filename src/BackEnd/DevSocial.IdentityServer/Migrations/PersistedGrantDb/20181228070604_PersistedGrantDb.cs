@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DevSocial.IdentityServer.Migrations.PersistedGrantDb
 {
-    public partial class PersistedGrantDB : Migration
+    public partial class PersistedGrantDb : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -11,8 +11,8 @@ namespace DevSocial.IdentityServer.Migrations.PersistedGrantDb
                 name: "DeviceCodes",
                 columns: table => new
                 {
-                    DeviceCode = table.Column<string>(maxLength: 200, nullable: false),
                     UserCode = table.Column<string>(maxLength: 200, nullable: false),
+                    DeviceCode = table.Column<string>(maxLength: 200, nullable: false),
                     SubjectId = table.Column<string>(maxLength: 200, nullable: true),
                     ClientId = table.Column<string>(maxLength: 200, nullable: false),
                     CreationTime = table.Column<DateTime>(nullable: false),

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace IdentityServer4.Quickstart.UI
+namespace DevSocial.IdentityServer.Quickstart.Grants
 {
     public class GrantsViewModel
     {
