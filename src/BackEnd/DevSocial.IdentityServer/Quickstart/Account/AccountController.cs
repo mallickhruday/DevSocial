@@ -8,6 +8,8 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
+using System.Web;
+using DevSocial.IdentityServer.Entities;
 using DevSocial.IdentityServer.Settings;
 using IdentityModel;
 using IdentityServer4.Events;
@@ -30,6 +32,7 @@ namespace DevSocial.IdentityServer.Quickstart.Account
     [SecurityHeaders]
     public class AccountController : Controller
     {
+        private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IEventService _events;
@@ -41,10 +44,12 @@ namespace DevSocial.IdentityServer.Quickstart.Account
             IHttpContextAccessor httpContextAccessor,
             IAuthenticationSchemeProvider schemeProvider,
             IEventService events,
-            UserManager<IdentityUser> userManager)
+            UserManager<IdentityUser> userManager,
+            SignInManager<IdentityUser> signInManager)
         {
             // if the TestUserStore is not in DI, then we'll just use the global users collection
             _userManager = userManager;
+            _signInManager = signInManager;
             _interaction = interaction;
             _events = events;
             _account = new AccountService(interaction, httpContextAccessor, schemeProvider, clientStore);
@@ -56,16 +61,15 @@ namespace DevSocial.IdentityServer.Quickstart.Account
         [HttpGet]
         public async Task<IActionResult> Login(string returnUrl)
         {
-            // build a model so we know what to show on the login page
-            var vm = await _account.BuildLoginViewModelAsync(returnUrl);
+            string redirectQuery = HttpUtility.ParseQueryString(returnUrl ?? "").Get("redirect_uri");
 
-            if (vm.IsExternalLoginOnly)
+            var model = new ViewModels.LoginViewModel() { ReturnUrl = returnUrl };
+            if (!string.IsNullOrEmpty(redirectQuery) && Uri.TryCreate(redirectQuery, UriKind.Absolute, out Uri uri))
             {
-                // we only have one option for logging in and it's an external provider
-                return await ExternalLogin(vm.ExternalLoginScheme, returnUrl);
+                model.RedirectUrl = "http://localhost:5003/callback.html";
             }
 
-            return View(vm);
+            return View(model);
         }
 
         /// <summary>
@@ -73,70 +77,28 @@ namespace DevSocial.IdentityServer.Quickstart.Account
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginInputModel model, string button)
+        public async Task<IActionResult> Login(ViewModels.LoginViewModel model)
         {
-            if (button != "login")
+            if (!ModelState.IsValid)
             {
-                // the user clicked the "cancel" button
-                var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
-                if (context != null)
-                {
-                    // if the user cancels, send a result back into IdentityServer as if they 
-                    // denied the consent (even if this client does not require consent).
-                    // this will send back an access denied OIDC error response to the client.
-                    await _interaction.GrantConsentAsync(context, ConsentResponse.Denied);
-                    
-                    // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
-                    return Redirect(model.ReturnUrl);
-                }
-                else
-                {
-                    // since we don't have a valid context, then we just go back to the home page
-                    return Redirect("~/");
-                }
+                return View(model);
             }
 
-            if (ModelState.IsValid)
+            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+
+            if (result.Succeeded)
             {
-                var user = await _userManager.FindByNameAsync(model.Username);
-
-                // validate username/password against in-memory store
-                if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
-                {
-                    await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName));
-
-                    // only set explicit expiration here if user chooses "remember me". 
-                    // otherwise we rely upon expiration configured in cookie middleware.
-                    AuthenticationProperties props = null;
-                    if (AccountOptions.AllowRememberLogin && model.RememberLogin)
-                    {
-                        props = new AuthenticationProperties
-                        {
-                            IsPersistent = true,
-                            ExpiresUtc = DateTimeOffset.UtcNow.Add(AccountOptions.RememberMeLoginDuration)
-                        };
-                    };
-
-                    // issue authentication cookie with subject ID and username
-                    await HttpContext.SignInAsync(user.Id, user.UserName, props);
-
-                    // make sure the returnUrl is still valid, and if so redirect back to authorize endpoint or a local page
-                    if (_interaction.IsValidReturnUrl(model.ReturnUrl) || Url.IsLocalUrl(model.ReturnUrl))
-                    {
-                        return Redirect(model.ReturnUrl);
-                    }
-
-                    return Redirect("~/");
-                }
-
-                await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials"));
-
-                ModelState.AddModelError("", AccountOptions.InvalidCredentialsErrorMessage);
+                var user = await _userManager.FindByNameAsync(model.Email);
+                await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName));
+                //_logger.LogInformation("Login succeeded");
+                return Redirect(model.RedirectUrl);
             }
-
-            // something went wrong, show form with error
-            var vm = await _account.BuildLoginViewModelAsync(model);
-            return View(vm);
+            else
+            {
+                ModelState.AddModelError("", "Fail login");
+                //_logger.LogError("Login error. Email {0}, password {1}", model.Email, model.Password);
+                return View(model);
+            }
         }
 
         /// <summary>
@@ -243,7 +205,7 @@ namespace DevSocial.IdentityServer.Quickstart.Account
             {
                 // this sample simply auto-provisions new external user
                 // another common approach is to start a registrations workflow first
-                user = new IdentityUser { UserName = Guid.NewGuid().ToString() };
+                user = new ApplicationUser { UserName = Guid.NewGuid().ToString() };
                 await _userManager.CreateAsync(user);
                 await _userManager.AddLoginAsync(user, new UserLoginInfo(provider, userId, provider));
             }
